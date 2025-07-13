@@ -1,0 +1,36 @@
+{
+  "task.autoDetect": "on",
+  "task.slowProviderWarning": false,
+  "task.allowAutomaticTasks": "on",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/allure-results": false,
+    "**/test-results": false,
+    "**/playwright-report": false
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/allure-results": true,
+    "**/test-results": true,
+    "**/playwright-report": true
+  },
+  "debug.console.fontSize": 12,
+  "debug.console.lineHeight": 18,
+  "debug.internalConsoleOptions": "neverOpen",
+  "debug.openDebug": "openOnDebugBreak",
+  "debug.showBreakpointsInOverviewRuler": true,
+  "debug.showInlineBreakpointCandidates": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "files.associations": {
+    "*.spec.ts": "typescript",
+    "*.test.ts": "typescript"
+  }
+} 

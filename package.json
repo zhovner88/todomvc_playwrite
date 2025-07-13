@@ -1,0 +1,41 @@
+{
+  "name": "denyszhovnerovych",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:comprehensive": "playwright test tests/todomvc-comprehensive.spec.ts",
+    "report:generate": "allure generate allure-results --clean",
+    "report:open": "allure open",
+    "report:serve": "allure serve allure-results",
+    "test:with-report": "playwright test && npm run report:generate",
+    "clean": "rm -rf allure-results test-results playwright-report allure-report",
+    "test:clean": "npm run clean && npm run test:with-report",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:safari": "playwright test --project=webkit",
+    "test:chrome:headed": "playwright test --project=chromium --headed",
+    "test:firefox:headed": "playwright test --project=firefox --headed",
+    "test:safari:headed": "playwright test --project=webkit --headed",
+    "test:chrome:debug": "playwright test --project=chromium --debug",
+    "test:firefox:debug": "playwright test --project=firefox --debug",
+    "test:safari:debug": "playwright test --project=webkit --debug",
+    "test:comprehensive:chrome": "playwright test tests/todomvc-comprehensive.spec.ts --project=chromium",
+    "test:comprehensive:firefox": "playwright test tests/todomvc-comprehensive.spec.ts --project=firefox",
+    "test:comprehensive:safari": "playwright test tests/todomvc-comprehensive.spec.ts --project=webkit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.53.2",
+    "@types/node": "^24.0.10",
+    "allure-commandline": "^2.34.1",
+    "allure-playwright": "^3.3.0"
+  }
+}
