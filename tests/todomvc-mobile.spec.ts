@@ -7,7 +7,7 @@ import { WebApp } from '../utils/webApp';
 test.use({ ...devices['iPhone 12'] });
 
 test.describe('TodoMVC Mobile - with Rotation', () => {
-  let webApp;
+  let webApp: WebApp;
 
   test.beforeEach(async ({ page }) => {
     await test.step('Go to app', async () => {
