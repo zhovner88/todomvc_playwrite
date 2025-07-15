@@ -1,41 +1,45 @@
-import { expect, test } from '@playwright/test';
+import { devices } from '@playwright/test';
 import { WebApp } from '../utils/webApp';
+import { expect, test } from './fixtures';
+test.use({ ...devices['iPhone 12'] });
+
+async function setupFilteringTodos(webApp: WebApp) {
+  const todos = ['Active task 1', 'Active task 2', 'Completed task 1', 'Completed task 2'];
+  for (const todo of todos) {
+    await webApp.todoPage.addTodo(todo);
+  }
+  await webApp.todoPage.toggleTodoByText('Completed task 1');
+  await webApp.todoPage.toggleTodoByText('Completed task 2');
+}
 
 test.describe('TodoMVC Application', () => {
-  let webApp: WebApp;
-
-  test.beforeEach(async ({ page }) => {
-    await page.goto('https://todomvc.com/examples/react/dist/');
-    webApp = WebApp.init(page);
-  });
-
   test.describe('Basic Functionality', () => {
     test('Should display correct page title and placeholder', async ({ page }) => {
       await expect(page.getByRole('heading', { name: 'todos' })).toBeVisible();
       await expect(page.getByTestId('text-input')).toHaveAttribute('placeholder', 'What needs to be done?');
     });
 
-    test('Should add a single todo', async () => {
+    test('Should add a single todo', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Buy groceries');
       const todos = await webApp.todoPage.getTodoLabels();
       await expect(todos).toHaveCount(1);
       await expect(todos.first()).toHaveText('Buy groceries');
     });
 
-    test('Should add multiple todos', async () => {
+    test('Should add multiple todos', async ({ webApp }) => {
       const todoItems = ['Buy groceries', 'Walk the dog', 'Read a book'];
       await webApp.todoPage.addMultipleTodos(todoItems);
       await webApp.todoPage.expectTodoCount(3);
       await webApp.todoPage.expectTodoTexts(todoItems);
     });
 
-    test('Should not add empty todos', async () => {
+    test('Should not add empty todos', async ({ webApp }) => {
       await webApp.todoPage.textInput.press('Enter');
       const todos = await webApp.todoPage.getTodoLabels();
       await expect(todos).toHaveCount(0);
     });
 
-    test('Should not add todos with only whitespace', async () => {
+    test('Should not add todos with only whitespace', async ({ webApp }) => {
       await webApp.todoPage.textInput.fill('   ');
       await webApp.todoPage.textInput.press('Enter');
       const todos = await webApp.todoPage.getTodoLabels();
@@ -44,20 +48,20 @@ test.describe('TodoMVC Application', () => {
   });
 
   test.describe('Todo Management', () => {
-    test('Should complete a todo', async () => {
+    test('Should complete a todo', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Complete this task');
       await webApp.todoPage.toggleTodoByText('Complete this task');
       await webApp.todoPage.expectTodoCompleted('Complete this task');
     });
 
-    test('Should uncomplete a todo', async () => {
+    test('Should uncomplete a todo', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Toggle this task');
       await webApp.todoPage.toggleTodoByText('Toggle this task');
       await webApp.todoPage.toggleTodoByText('Toggle this task');
       await webApp.todoPage.expectTodoNotCompleted('Toggle this task');
     });
 
-    test('Should edit a todo by double-clicking', async () => {
+    test('Should edit a todo by double-clicking', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Original text');
       const todoItem = (await webApp.todoPage.getTodoLabels()).first();
       await expect(todoItem).toHaveText('Original text');
@@ -65,21 +69,21 @@ test.describe('TodoMVC Application', () => {
       await expect(todoItem).toHaveText('Updated text');
     });
 
-    test('Should edit a todo and save with Enter', async () => {
+    test('Should edit a todo and save with Enter', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Original text');
       const todoItem = webApp.todoPage.page.getByTestId('todo-item-label').first();
       await webApp.todoPage.editTodoByText('Original text', 'Updated text');
       await expect(todoItem).toHaveText('Updated text');
     });
 
-    test('Should edit a todo and save with Escape', async () => {
+    test('Should edit a todo and save with Escape', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Original text');
       const todoItem = webApp.todoPage.page.getByTestId('todo-item-label').first();
       await webApp.todoPage.editTodoByTextAndCancel('Original text', 'Cancelled edit');
       await expect(todoItem).toHaveText('Original text');
     });
 
-    test('Should delete a todo', async () => {
+    test('Should delete a todo', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Delete this task');
       const todoItem = webApp.todoPage.page.getByRole('listitem').filter({ hasText: 'Delete this task' });
       await todoItem.hover();
@@ -88,7 +92,7 @@ test.describe('TodoMVC Application', () => {
       await expect(todoItem).not.toBeVisible();
     });
 
-    test('Should delete multiple todos', async () => {
+    test('Should delete multiple todos', async ({ webApp }) => {
       const todos = ['First todo', 'Second todo', 'Third todo'];
       await webApp.todoPage.addMultipleTodos(todos);
       await webApp.todoPage.deleteMultipleTodos(['First todo', 'Third todo']);
@@ -98,37 +102,32 @@ test.describe('TodoMVC Application', () => {
   });
 
   test.describe('Filtering', () => {
-    test.beforeEach(async () => {
-      const todos = ['Active task 1', 'Active task 2', 'Completed task 1', 'Completed task 2'];
-      for (const todo of todos) {
-        await webApp.todoPage.addTodo(todo);
-      }
-      await webApp.todoPage.toggleTodoByText('Completed task 1');
-      await webApp.todoPage.toggleTodoByText('Completed task 2');
-    });
-
-    test('Should filter by All', async () => {
+    test('Should filter by All', async ({ webApp }) => {
+      await setupFilteringTodos(webApp);
       await webApp.todoPage.filter('All');
       const allTodos = await webApp.todoPage.getTodoLabels();
       await expect(allTodos).toHaveCount(4);
       await expect(allTodos).toHaveText(['Active task 1', 'Active task 2', 'Completed task 1', 'Completed task 2']);
     });
 
-    test('Should filter by Active', async () => {
+    test('Should filter by Active', async ({ webApp }) => {
+      await setupFilteringTodos(webApp);
       await webApp.todoPage.filter('Active');
       const activeTodos = await webApp.todoPage.getTodoLabels();
       await expect(activeTodos).toHaveCount(2);
       await expect(activeTodos).toHaveText(['Active task 1', 'Active task 2']);
     });
 
-    test('Should filter by Completed', async () => {
+    test('Should filter by Completed', async ({ webApp }) => {
+      await setupFilteringTodos(webApp);
       await webApp.todoPage.filter('Completed');
       const completedTodos = await webApp.todoPage.getTodoLabels();
       await expect(completedTodos).toHaveCount(2);
       await expect(completedTodos).toHaveText(['Completed task 1', 'Completed task 2']);
     });
 
-    test('Should update active filter when todos are completed', async () => {
+    test('Should update active filter when todos are completed', async ({ webApp }) => {
+      await setupFilteringTodos(webApp);
       await webApp.todoPage.filter('Active');
       await expect(await webApp.todoPage.getTodoLabels()).toHaveCount(2);
       await webApp.todoPage.toggleTodoByText('Active task 1');
@@ -138,7 +137,7 @@ test.describe('TodoMVC Application', () => {
   });
 
   test.describe('Bulk Operations', () => {
-    test('Should toggle all todos', async () => {
+    test('Should toggle all todos', async ({ webApp }) => {
       const todos = ['Task 1', 'Task 2', 'Task 3'];
       await webApp.todoPage.addMultipleTodos(todos);
       await webApp.todoPage.toggleAllTodos();
@@ -147,7 +146,7 @@ test.describe('TodoMVC Application', () => {
       }
     });
 
-    test('Should untoggle all todos', async () => {
+    test('Should untoggle all todos', async ({ webApp }) => {
       const todos = ['Task 1', 'Task 2', 'Task 3'];
       await webApp.todoPage.addMultipleTodos(todos);
       await webApp.todoPage.toggleAllTodos();
@@ -157,7 +156,7 @@ test.describe('TodoMVC Application', () => {
       }
     });
 
-    test('Should clear completed todos', async () => {
+    test('Should clear completed todos', async ({ webApp }) => {
       const todos = ['Keep this', 'Complete this', 'Also complete this'];
       await webApp.todoPage.addMultipleTodos(todos);
       await webApp.todoPage.toggleMultipleTodos(['Complete this', 'Also complete this']);
@@ -166,14 +165,14 @@ test.describe('TodoMVC Application', () => {
       await webApp.todoPage.expectTodoText('Keep this');
     });
 
-    test('Should not show clear completed button when no todos are completed', async () => {
+    test('Should not show clear completed button when no todos are completed', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Active task');
       await expect(webApp.todoPage.page.getByTestId('clear-completed')).not.toBeVisible();
     });
   });
 
   test.describe('Counter and Status', () => {
-    test('Should show correct item count', async () => {
+    test('Should show correct item count', async ({ webApp }) => {
       await webApp.todoPage.addTodo('First task');
       await expect(webApp.todoPage.page.locator('span.todo-count')).toHaveText('1 item left!');
       await webApp.todoPage.addTodo('Second task');
@@ -182,7 +181,7 @@ test.describe('TodoMVC Application', () => {
       await expect(webApp.todoPage.page.locator('span.todo-count')).toHaveText('1 item left!');
     });
 
-    test('Should show "item" for single todo and "items" for multiple', async () => {
+    test('Should show "item" for single todo and "items" for multiple', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Single task');
       await expect(webApp.todoPage.page.locator('span.todo-count')).toHaveText('1 item left!');
       await webApp.todoPage.addTodo('Second task');
@@ -191,7 +190,7 @@ test.describe('TodoMVC Application', () => {
   });
 
   test.describe('Edge Cases', () => {
-    test('Should handle very long todo text', async () => {
+    test('Should handle very long todo text', async ({ webApp }) => {
       const longText = 'This is a very long todo item that should be handled properly by the application without breaking the layout or functionality. It contains many characters and should still be editable and deletable.';
       await webApp.todoPage.addTodo(longText);
       const todos = await webApp.todoPage.getTodoLabels();
@@ -199,7 +198,7 @@ test.describe('TodoMVC Application', () => {
       await expect(todos.first()).toHaveText(longText);
     });
 
-    test('Should handle special characters in todo text', async () => {
+    test('Should handle special characters in todo text', async ({ webApp }) => {
       const specialText = 'Todo with special chars: !@#$%^()_+-=[]{}|;:,.?';
       await webApp.todoPage.addTodo(specialText);
       const todos = await webApp.todoPage.getTodoLabels();
@@ -207,7 +206,7 @@ test.describe('TodoMVC Application', () => {
       await expect(todos.first()).toHaveText(specialText);
     });
 
-    test('Should handle emoji in todo text', async () => {
+    test('Should handle emoji in todo text', async ({ webApp }) => {
       const emojiText = 'Todo with emoji 🚀 🎉 💻';
       await webApp.todoPage.addTodo(emojiText);
       const todos = await webApp.todoPage.getTodoLabels();
@@ -215,14 +214,14 @@ test.describe('TodoMVC Application', () => {
       await expect(todos.first()).toHaveText(emojiText);
     });
 
-    test('Should handle rapid todo additions', async () => {
+    test('Should handle rapid todo additions', async ({ webApp }) => {
       const todos = ['Rapid 1', 'Rapid 2', 'Rapid 3', 'Rapid 4', 'Rapid 5'];
       await webApp.todoPage.addMultipleTodos(todos);
       await webApp.todoPage.expectTodoCount(5);
       await webApp.todoPage.expectTodoTexts(todos);
     });
 
-    test('Should handle rapid todo completions', async () => {
+    test('Should handle rapid todo completions', async ({ webApp }) => {
       const todos = ['Complete 1', 'Complete 2', 'Complete 3'];
       await webApp.todoPage.addMultipleTodos(todos);
       await webApp.todoPage.toggleMultipleTodos(todos);
@@ -232,7 +231,7 @@ test.describe('TodoMVC Application', () => {
   });
 
   test.describe('Keyboard Navigation', () => {
-    test('Should add todo with Enter key', async () => {
+    test('Should add todo with Enter key', async ({ webApp }) => {
       await webApp.todoPage.textInput.fill('Keyboard todo');
       await webApp.todoPage.textInput.press('Enter');
       const todos = await webApp.todoPage.getTodoLabels();
@@ -240,14 +239,14 @@ test.describe('TodoMVC Application', () => {
       await expect(todos.first()).toHaveText('Keyboard todo');
     });
 
-    test('Should not add todo with other keys', async () => {
+    test('Should not add todo with other keys', async ({ webApp }) => {
       await webApp.todoPage.textInput.fill('Should not add');
       await webApp.todoPage.textInput.press('Tab');
       const todos = await webApp.todoPage.getTodoLabels();
       await expect(todos).toHaveCount(0);
     });
 
-    test('Should edit todo with Enter key', async () => {
+    test('Should edit todo with Enter key', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Original');
       const todoItem = webApp.todoPage.page.getByRole('listitem').filter({ hasText: 'Original' });
       await todoItem.dblclick();
@@ -257,7 +256,7 @@ test.describe('TodoMVC Application', () => {
       await expect(todoItem).toHaveText('Updated');
     });
 
-    test('Should cancel edit with Tab key', async () => {
+    test('Should cancel edit with Tab key', async ({ webApp }) => {
       await webApp.todoPage.addTodo('Original');
       const todoItem = webApp.todoPage.page.getByRole('listitem').filter({ hasText: 'Original' });
       await todoItem.dblclick();

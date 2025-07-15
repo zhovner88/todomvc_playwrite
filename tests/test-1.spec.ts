@@ -1,15 +1,8 @@
-import { expect, test } from '@playwright/test';
-import { WebApp } from '../utils/webApp';
+import { expect } from '@playwright/test';
+import { test } from './fixtures';
 
 test.describe('Filter functionality', () => {
-  let webApp: WebApp;
-
-  test.beforeEach(async ({ page }) => {
-    await page.goto('https://todomvc.com/examples/react/dist/');
-    webApp = WebApp.init(page);
-  });
-
-  test('should filter active todos', async () => {
+  test('should filter active todos', async ({ webApp }) => {
     const todoPage = webApp.todoPage;
     await todoPage.addTodo('active 1');
     await todoPage.addTodo('active 2');
@@ -21,7 +14,7 @@ test.describe('Filter functionality', () => {
     await expect(todos).toHaveText(['active 1', 'active 2']);
   });
 
-  test('should filter completed todos', async () => {
+  test('should filter completed todos', async ({ webApp }) => {
     const todoPage = webApp.todoPage;
     await todoPage.addTodo('active 1');
     await todoPage.addTodo('completed 1');
