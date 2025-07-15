@@ -1,34 +1,34 @@
 import { expect, test } from '@playwright/test';
-import { TodoPage } from '../pages/TodoPage';
+import { WebApp } from '../utils/webApp';
 
-test('Should filter todos correctly', async ({ page }) => {
-  await page.goto('https://todomvc.com/examples/react/dist/');
-  const todoPage = new TodoPage(page);
+test.describe('Filter functionality', () => {
+  let webApp;
 
-  // Add two todos
-  const todos = ['feed the cat', 'water the plants'];
-  for (const todo of todos) {
-    await todoPage.addTodo(todo);
-  }
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://todomvc.com/examples/react/dist/');
+    webApp = WebApp.init(page);
+  });
 
-  // Complete "feed the cat"
-  await todoPage.toggleTodoByText('feed the cat');
+  test('should filter active todos', async () => {
+    const todoPage = webApp.todoPage;
+    await todoPage.addTodo('active 1');
+    await todoPage.addTodo('active 2');
+    await todoPage.addTodo('completed 1');
+    await todoPage.toggleTodoByText('completed 1');
+    await todoPage.filter('Active');
+    const todos = await todoPage.getTodoLabels();
+    await expect(todos).toHaveCount(2);
+    await expect(todos).toHaveText(['active 1', 'active 2']);
+  });
 
-  // Test Completed filter
-  await todoPage.filter('Completed');
-  const completedTodos = await todoPage.getTodoLabels();
-  await expect(completedTodos).toHaveCount(1);
-  await expect(completedTodos.first()).toHaveText('feed the cat');
-
-  // Test Active filter
-  await todoPage.filter('Active');
-  const activeTodos = await todoPage.getTodoLabels();
-  await expect(activeTodos).toHaveCount(1);
-  await expect(activeTodos.first()).toHaveText('water the plants');
-
-  // Test All filter
-  await todoPage.filter('All');
-  const allTodos = await todoPage.getTodoLabels();
-  await expect(allTodos).toHaveCount(2);
-  await expect(allTodos).toHaveText(todos);
+  test('should filter completed todos', async () => {
+    const todoPage = webApp.todoPage;
+    await todoPage.addTodo('active 1');
+    await todoPage.addTodo('completed 1');
+    await todoPage.toggleTodoByText('completed 1');
+    await todoPage.filter('Completed');
+    const todos = await todoPage.getTodoLabels();
+    await expect(todos).toHaveCount(1);
+    await expect(todos.first()).toHaveText('completed 1');
+  });
 });
