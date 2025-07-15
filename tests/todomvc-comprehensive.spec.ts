@@ -1,12 +1,15 @@
 import { expect, test } from '@playwright/test';
 import { TodoPage } from '../pages/TodoPage';
+import { PageFactory } from '../utils/page-factory';
+import { UIHelpers } from '../utils/ui-helpers';
 
 test.describe('TodoMVC Application', () => {
   let todoPage: TodoPage;
 
   test.beforeEach(async ({ page }) => {
     await page.goto('https://todomvc.com/examples/react/dist/');
-    todoPage = new TodoPage(page);
+    todoPage = PageFactory.getTodoPage(page);
+    await UIHelpers.takeScreenshotToScenario(page, 'After page load');
   });
 
   test.describe('Basic Functionality', () => {

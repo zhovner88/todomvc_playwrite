@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { allure } from 'allure-playwright';
 import { attachPageHTML, attachScreenshot } from '../utils/allure-helper';
 
 test.describe('Example with Screenshots', () => {
@@ -54,7 +53,10 @@ test.describe('Example with Screenshots', () => {
     
     // Manual screenshot attachment with custom name
     const screenshot = await page.screenshot({ fullPage: true });
-    await allure.attachment('manual-screenshot.png', screenshot, 'image/png');
+    await test.info().attach('manual-screenshot.png', {
+      body: screenshot,
+      contentType: 'image/png',
+    });
     
     // Add some todos
     const todos = ['First todo', 'Second todo', 'Third todo'];
@@ -65,7 +67,10 @@ test.describe('Example with Screenshots', () => {
     
     // Another screenshot after adding todos
     const screenshotAfterTodos = await page.screenshot({ fullPage: true });
-    await allure.attachment('after-adding-todos.png', screenshotAfterTodos, 'image/png');
+    await test.info().attach('after-adding-todos.png', {
+      body: screenshotAfterTodos,
+      contentType: 'image/png',
+    });
     
     // Verify todos were added
     await expect(page.getByTestId('todo-item-label')).toHaveCount(3);
