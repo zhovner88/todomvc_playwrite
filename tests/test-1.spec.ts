@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { WebApp } from '../utils/webApp';
 
 test.describe('Filter functionality', () => {
-  let webApp;
+  let webApp: WebApp;
 
   test.beforeEach(async ({ page }) => {
     await page.goto('https://todomvc.com/examples/react/dist/');
